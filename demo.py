@@ -2,6 +2,8 @@ import argparse
 import os
 import cv2
 import numpy as np
+from PIL import Image
+from PIL import ImageEnhance
 
 
 def parse_args():
@@ -36,6 +38,14 @@ def parse_args():
     return args
 
 
+def increase_sharp(image):
+    image_pil = Image.fromarray(image[..., ::-1])
+    enh_sha = ImageEnhance.Sharpness(image_pil)
+    sharpness = 3.0
+    image_sharped = enh_sha.enhance(sharpness)
+    return image_pil
+
+
 def main():
 
     img = cv2.imread(args.input, 1)
@@ -45,7 +55,7 @@ def main():
     threshold = 0.4
     exp_in = 112 # Expected global average intensity 
     M,N = img.shape[:2]
-    mean_in = np.sum(Y/(M*N)) 
+    mean_in = np.sum(Y/(M*N))
     t = (mean_in - exp_in)/ exp_in
     
     # Process image for gamma correction
@@ -81,7 +91,9 @@ def main():
         else:
             img_output = img
 
-    cv2.imwrite(args.output, img_output)
+    image_out = increase_sharp(img_output)
+    image_out = image_out.save(args.output)
+
     return 0
 
 
